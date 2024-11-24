@@ -2,7 +2,7 @@ package lastfm
 
 import "net/http"
 
-const (
+var (
 	UriApiSecBase  = "https://ws.audioscrobbler.com/2.0/"
 	UriApiBase     = "http://ws.audioscrobbler.com/2.0/"
 	UriBrowserBase = "https://www.last.fm/api/auth/"
@@ -33,11 +33,18 @@ type ClientOption func(*Config)
 
 type Config struct {
 	client *http.Client
+	url    string
 }
 
 func WithHTTPClient(client *http.Client) ClientOption {
 	return func(c *Config) {
 		c.client = client
+	}
+}
+
+func WithURL(url string) ClientOption {
+	return func(c *Config) {
+		c.url = url
 	}
 }
 
@@ -49,6 +56,7 @@ func New(key, secret string, opts ...ClientOption) (api *Api) {
 		o(&cfg)
 	}
 	httpClient = cfg.client
+	UriApiSecBase = cfg.url
 
 	params := apiParams{key, secret, "", ""}
 	api = &Api{
