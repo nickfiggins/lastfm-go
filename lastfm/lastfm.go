@@ -55,6 +55,7 @@ func New(key, secret string, opts ...ClientOption) (api *Api) {
 	for _, o := range opts {
 		o(&cfg)
 	}
+
 	httpClient = cfg.client
 	UriApiSecBase = cfg.url
 
