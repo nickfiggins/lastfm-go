@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"sort"
@@ -211,9 +211,9 @@ func formatArgs(args, rules P) (result map[string]string, err error) {
 	return
 }
 
-/////////////
+// ///////////
 // GET API //
-/////////////
+// ///////////
 func callGet(apiMethod string, params *apiParams, args map[string]interface{}, result interface{}, rules P) (err error) {
 	urlParams := url.Values{}
 	urlParams.Add("method", apiMethod)
@@ -229,7 +229,7 @@ func callGet(apiMethod string, params *apiParams, args map[string]interface{}, r
 
 	uri := constructUrl(UriApiSecBase, urlParams)
 
-	client := &http.Client{}
+	client := httpClient
 	req, err := http.NewRequest("GET", uri, nil)
 	if err != nil {
 		return
@@ -246,7 +246,7 @@ func callGet(apiMethod string, params *apiParams, args map[string]interface{}, r
 		err = newLibError(res.StatusCode, res.Status)
 		return
 	}
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
@@ -254,9 +254,9 @@ func callGet(apiMethod string, params *apiParams, args map[string]interface{}, r
 	return
 }
 
-//////////////
+// ////////////
 // POST API //
-//////////////
+// ////////////
 func callPost(apiMethod string, params *apiParams, args P, result interface{}, rules P) (err error) {
 	if err = requireAuth(params); err != nil {
 		return
@@ -285,7 +285,7 @@ func callPost(apiMethod string, params *apiParams, args P, result interface{}, r
 	sig := getSignature(tmp, params.secret)
 	postData.Add("api_sig", sig)
 
-	client := &http.Client{}
+	client := httpClient
 	req, err := http.NewRequest("POST", uri, strings.NewReader(postData.Encode()))
 	if err != nil {
 		return
@@ -300,7 +300,7 @@ func callPost(apiMethod string, params *apiParams, args P, result interface{}, r
 	if err != nil {
 		return
 	}
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}
@@ -335,7 +335,7 @@ func callPostWithoutSession(apiMethod string, params *apiParams, args P, result 
 	if err != nil {
 		return
 	}
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		return
 	}

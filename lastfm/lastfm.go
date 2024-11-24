@@ -1,5 +1,7 @@
 package lastfm
 
+import "net/http"
+
 const (
 	UriApiSecBase  = "https://ws.audioscrobbler.com/2.0/"
 	UriApiBase     = "http://ws.audioscrobbler.com/2.0/"
@@ -9,15 +11,15 @@ const (
 type P map[string]interface{}
 
 type Api struct {
-	params      *apiParams
-	Album       *albumApi
-	Artist      *artistApi
-	Chart       *chartApi
-	Geo         *geoApi
-	Library     *libraryApi
-	Tag         *tagApi
-	Track       *trackApi
-	User        *userApi
+	params  *apiParams
+	Album   *albumApi
+	Artist  *artistApi
+	Chart   *chartApi
+	Geo     *geoApi
+	Library *libraryApi
+	Tag     *tagApi
+	Track   *trackApi
+	User    *userApi
 }
 
 type apiParams struct {
@@ -27,18 +29,38 @@ type apiParams struct {
 	useragent string
 }
 
-func New(key, secret string) (api *Api) {
+type ClientOption func(*Config)
+
+type Config struct {
+	client *http.Client
+}
+
+func WithHTTPClient(client *http.Client) ClientOption {
+	return func(c *Config) {
+		c.client = client
+	}
+}
+
+var httpClient = http.DefaultClient
+
+func New(key, secret string, opts ...ClientOption) (api *Api) {
+	var cfg Config
+	for _, o := range opts {
+		o(&cfg)
+	}
+	httpClient = cfg.client
+
 	params := apiParams{key, secret, "", ""}
 	api = &Api{
-		params:      &params,
-		Album:       &albumApi{&params},
-		Artist:      &artistApi{&params},
-		Chart:       &chartApi{&params},
-		Geo:         &geoApi{&params},
-		Library:     &libraryApi{&params},
-		Tag:         &tagApi{&params},
-		Track:       &trackApi{&params},
-		User:        &userApi{&params},
+		params:  &params,
+		Album:   &albumApi{&params},
+		Artist:  &artistApi{&params},
+		Chart:   &chartApi{&params},
+		Geo:     &geoApi{&params},
+		Library: &libraryApi{&params},
+		Tag:     &tagApi{&params},
+		Track:   &trackApi{&params},
+		User:    &userApi{&params},
 	}
 	return
 }
